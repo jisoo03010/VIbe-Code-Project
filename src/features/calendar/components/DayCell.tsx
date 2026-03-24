@@ -13,8 +13,10 @@ interface DayCellProps {
 
 function getBeanColor(rate: number): string {
   if (rate <= 0) return '#e2e0de';
-  const lightness = 85 - rate * 35;
-  const saturation = 40 + rate * 30;
+  if (rate >= 1) return '#96ce46';
+  // 연한 연두 → 메인 컬러로 보간
+  const lightness = 85 - rate * 31; // 85% → 54%
+  const saturation = 30 + rate * 30; // 30% → 60%
   return `hsl(87, ${saturation}%, ${lightness}%)`;
 }
 

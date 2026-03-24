@@ -20,7 +20,7 @@ const categoryAccent: Record<string, string> = {
 export default function App() {
   const { currentDate, viewType, setViewType, calendarDays, goToPrev, goToNext, goToToday, isToday } =
     useCalendar();
-  const { todos, getTodosForDate, updateTodo, getCompletionRate } = useTodo();
+  const { todos, getTodosForDate, updateTodo, getCompletionRate, getMonthlyDoneCount } = useTodo();
 
   const [page, setPage] = useState<Page>('home');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -56,6 +56,7 @@ export default function App() {
             onPrev={goToPrev}
             onNext={goToNext}
             onToday={handleToday}
+            monthlyDoneCount={getMonthlyDoneCount(todayStr.slice(0, 7))}
           />
           <div className="calendar-container">
             {viewType === 'month' ? (
