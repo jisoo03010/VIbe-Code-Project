@@ -1,30 +1,23 @@
 import { useState } from 'react';
 import type { Todo } from '../types/todo.types';
 
+const TODAY = new Date().toISOString().split('T')[0];
+const YESTERDAY = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
 const MOCK_TODOS: Todo[] = [
-  { id: '1', content: '알고리즘 문제 3개 풀기', category: '공부', targetTime: 60, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T08:00:00') },
-  { id: '2', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '3', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '4', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '5', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '6', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '7', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '8', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '9', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T07:00:00') },
-  { id: '10', content: '프로젝트 API 설계', category: '업무', targetTime: 90, status: 'in-progress', date: '2026-03-23', createdAt: new Date('2026-03-23T₀₉:₀₀:₀₀') },
-  { id: '11', content: '책 읽기 - 클린 코드 3장', category: '개인', targetTime: 40, status: 'done', date: '2026-03-23', createdAt: new Date('2026-₀₃-₂₃T₁₀:₀₀:₀₀') },
-  { id: '12', content: '영화 보기 - 인셉션', category: '개인', status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T12:00:00') },
-  { id: '13', content: '저녁 식사 준비', category: '개인', targetTime: 60, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T17:00:00') },
-  { id: '14', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '15', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '16', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '17', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '18', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '19', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '20', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '21', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '22', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
-  { id: '23', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: '2026-03-23', createdAt: new Date('2026-03-23T15:00:00') },
+  // 어제 데이터
+  { id: '1', content: '알고리즘 문제 3개 풀기', category: '공부', targetTime: 60, status: 'done', date: YESTERDAY, createdAt: new Date() },
+  { id: '2', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: YESTERDAY, createdAt: new Date() },
+  { id: '3', content: '프로젝트 API 설계', category: '업무', targetTime: 90, status: 'done', date: YESTERDAY, createdAt: new Date() },
+
+  // 오늘 데이터
+  { id: '10', content: '리액트 강의 듣기', category: '공부', targetTime: 45, status: 'done', date: TODAY, createdAt: new Date() },
+  { id: '11', content: '타입스크립트 복습', category: '공부', targetTime: 30, status: 'pending', date: TODAY, createdAt: new Date() },
+  { id: '12', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: TODAY, createdAt: new Date() },
+  { id: '13', content: '스트레칭', category: '운동', targetTime: 15, status: 'pending', date: TODAY, createdAt: new Date() },
+  { id: '14', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: TODAY, createdAt: new Date() },
+  { id: '15', content: 'PR 코드 리뷰', category: '업무', targetTime: 60, status: 'pending', date: TODAY, createdAt: new Date() },
+  { id: '16', content: '책 읽기 - 클린 코드 3장', category: '개인', targetTime: 40, status: 'pending', date: TODAY, createdAt: new Date() },
 ];
 
 export function useTodo() {

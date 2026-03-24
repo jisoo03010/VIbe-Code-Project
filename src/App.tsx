@@ -1,30 +1,38 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { CalendarHeader, MonthView, WeekView, useCalendar } from './features/calendar';
 import { useTodo } from './features/todo';
+import type { Todo } from './features/todo';
 import { TodayPage } from './features/today/TodayPage';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { useCategory } from './features/settings/useCategory';
 import { BottomNav } from './shared/components/BottomNav';
 import { BottomSheet } from './shared/components/BottomSheet';
+import { DayTodoPanel } from './features/todo/components/DayTodoPanel';
+import { Snackbar } from './shared/components/Snackbar';
 import './App.css';
 
 type Page = 'home' | 'today' | 'settings';
 
-const categoryAccent: Record<string, string> = {
-  공부: '#96ce46',
-  운동: '#ffa726',
-  업무: '#42a5f5',
-  개인: '#ef5350',
-  기타: '#ab47bc',
-};
-
 export default function App() {
   const { currentDate, viewType, setViewType, calendarDays, goToPrev, goToNext, goToToday, isToday } =
     useCalendar();
-  const { todos, getTodosForDate, updateTodo, getCompletionRate, getMonthlyDoneCount } = useTodo();
+  const { todos, addTodo, deleteTodo, getTodosForDate, updateTodo, getCompletionRate, getMonthlyDoneCount } = useTodo();
+  const { categories, maxCategories, addCategory, updateCategory, deleteCategory } = useCategory();
+
+  const taskCounts: Record<string, number> = {};
+  for (const t of todos) {
+    taskCounts[t.category] = (taskCounts[t.category] ?? 0) + 1;
+  }
+
+  const categoryAccentMap: Record<string, string> = {};
+  for (const c of categories) {
+    categoryAccentMap[c.name] = c.color;
+  }
 
   const [page, setPage] = useState<Page>('home');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [shakeToday, setShakeToday] = useState(false);
+  const [deletedTodo, setDeletedTodo] = useState<Todo | null>(null);
 
   const handleToday = () => {
     goToToday();
@@ -43,6 +51,29 @@ export default function App() {
     if (!todo) return;
     updateTodo(id, { status: todo.status === 'done' ? 'pending' : 'done' });
   };
+
+  const handleDelete = useCallback((id: string) => {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    setDeletedTodo(todo);
+    deleteTodo(id);
+  }, [todos, deleteTodo]);
+
+  const handleUndo = useCallback(() => {
+    if (!deletedTodo) return;
+    addTodo({
+      content: deletedTodo.content,
+      category: deletedTodo.category,
+      targetTime: deletedTodo.targetTime,
+      status: deletedTodo.status,
+      date: deletedTodo.date,
+    });
+    setDeletedTodo(null);
+  }, [deletedTodo, addTodo]);
+
+  const handleDismissSnackbar = useCallback(() => {
+    setDeletedTodo(null);
+  }, []);
 
   return (
     <div className="app">
@@ -80,48 +111,29 @@ export default function App() {
               />
             )}
           </div>
+          <DayTodoPanel
+            date={new Date()}
+            todos={todayTodos}
+            categories={categories}
+            categoryAccentMap={categoryAccentMap}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+            onAdd={addTodo}
+          />
           {selectedDate && (() => {
             const dateStr = selectedDate.toISOString().split('T')[0];
             const dateTodos = getTodosForDate(dateStr);
             return (
               <BottomSheet key={dateStr} onClose={() => setSelectedDate(null)}>
-                <div className="day-todo-panel">
-                  <div className="day-todo-panel__header">
-                    {selectedDate.toLocaleDateString('ko-KR', {
-                      month: 'long',
-                      day: 'numeric',
-                      weekday: 'long',
-                    })}
-                  </div>
-                  {dateTodos.length === 0 ? (
-                    <p className="day-todo-panel__empty">등록된 할 일이 없습니다</p>
-                  ) : (
-                    <ul className="day-todo-list">
-                      {dateTodos.map((todo, idx) => (
-                        <li
-                          key={todo.id}
-                          className={`day-todo-item ${todo.status === 'done' ? 'day-todo-item--done' : ''}`}
-                          style={{ animationDelay: `${idx * 60}ms` }}
-                          onClick={() => handleToggle(todo.id)}
-                        >
-                          <span
-                            className="day-todo-item__dot"
-                            style={{ background: categoryAccent[todo.category] ?? '#96ce46' }}
-                          />
-                          <div className="day-todo-item__body">
-                            <span className="day-todo-item__content">{todo.content}</span>
-                            <span className="day-todo-item__meta">
-                              {todo.category}{todo.targetTime ? ` · ${todo.targetTime}분` : ''}
-                            </span>
-                          </div>
-                          <span className="day-todo-item__status">
-                            {todo.status === 'done' ? '✓' : ''}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <DayTodoPanel
+                  date={selectedDate}
+                  todos={dateTodos}
+                  categories={categories}
+                  categoryAccentMap={categoryAccentMap}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onAdd={addTodo}
+                />
               </BottomSheet>
             );
           })()}
@@ -132,11 +144,27 @@ export default function App() {
         </div>
 
         <div className={`page ${page === 'settings' ? 'page--active' : ''}`}>
-          <SettingsPage />
+          <SettingsPage
+            categories={categories}
+            maxCategories={maxCategories}
+            taskCounts={taskCounts}
+            onAddCategory={addCategory}
+            onUpdateCategory={updateCategory}
+            onDeleteCategory={deleteCategory}
+          />
         </div>
       </div>
 
       <BottomNav current={page} onChange={setPage} />
+
+      {deletedTodo && (
+        <Snackbar
+          key={deletedTodo.id}
+          message={`"${deletedTodo.content}" 삭제됨`}
+          onUndo={handleUndo}
+          onDismiss={handleDismissSnackbar}
+        />
+      )}
     </div>
   );
 }
