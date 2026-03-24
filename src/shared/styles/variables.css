@@ -1,0 +1,25 @@
+:root {
+  /* ── 컬러 팔레트 ── */
+  --color-main:   #96ce46; /* 메인 컬러 */
+  --color-main-light: #c8e6a0; /* 메인 연한 */
+  --color-main-bg: #f0f8e4; /* 메인 배경 */
+  --color-coral:  #FFC9C9; /* 중요 / 미완료 */
+  --color-mint:   #D3F9D8; /* 완료 / 성공 */
+  --color-yellow: #FFF3BF; /* 강조 / 포인트 */
+  --color-text:   rgb(29, 29, 28);
+
+  /* ── 레이아웃 (모바일 단일 컬럼) ── */
+  --layout-max-width: 480px;
+  --layout-min-width: 320px;
+
+  /* ── 타이포그래피 ── */
+  --font-size-base: 14px;
+  --line-height:    1.5em;
+
+  /* ── 간격 ── */
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+
+  /* ── 터치 요소 최소 크기 ── */
+  --touch-target: 44px;
+}
