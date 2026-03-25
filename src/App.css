@@ -483,7 +483,7 @@
    Day Todo Panel (inside sheet)
    ══════════════════════════════════ */
 .day-todo-panel {
-  padding-top: 4px;
+  padding-top: 30px;
 }
 
 .day-todo-panel__header {
@@ -641,9 +641,23 @@
   border-color: var(--color-main);
 }
 
+.cat-group__time {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.cat-group__time-sep {
+  font-size: 14px;
+  color: #bbb;
+  font-weight: 600;
+}
+
 .cat-group__input--time {
-  flex: 0 0 56px;
+  flex: 0 0 46px;
   text-align: center;
+  padding: 0 6px;
 }
 
 .cat-group__submit {
@@ -761,30 +775,75 @@
   }
 }
 
-.swipe-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, #fff 0%, #ef5350 60%);
-  display: flex;
-  align-items: center;
-  padding-left: 20px;
-  border-radius: 12px;
-  transition: opacity 0.15s;
-}
-
-.swipe-bg__icon {
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  margin-left: auto;
-  padding-right: 20px;
-}
 
 .swipe-content {
   position: relative;
   z-index: 1;
   background: #fff;
   border-radius: 12px;
+}
+
+/* ══════════════════════════════════
+   Snackbar
+   ══════════════════════════════════ */
+.snackbar {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: calc(var(--layout-max-width) - 32px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #2c2c2e;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  z-index: 500;
+  animation: snackbarIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes snackbarIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.snackbar__icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ef5350;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #ef5350;
+  flex-shrink: 0;
+}
+
+.snackbar__msg {
+  flex: 1;
+  font-size: 14px;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snackbar__undo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #96ce46;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ══════════════════════════════════
