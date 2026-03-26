@@ -27,8 +27,8 @@ export function useTodo() {
       .from('todos')
       .select('*')
       .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) setTodos(data.map(rowToTodo));
+      .then((result) => {
+        if (!result.error && result.data) setTodos(result.data.map(rowToTodo));
       });
   }, []);
 
