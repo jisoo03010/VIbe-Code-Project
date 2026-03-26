@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { Category, Todo, TodoStatus } from '../types/todo.types';
+import type { Todo, TodoStatus } from '../types/todo.types';
 
-const CATEGORIES: Category[] = ['공부', '운동', '업무', '개인', '기타'];
+const CATEGORIES: string[] = ['공부', '운동', '업무', '개인', '기타'];
 
 interface TodoFormProps {
   date: string; // YYYY-MM-DD
@@ -12,7 +12,7 @@ interface TodoFormProps {
 
 export function TodoForm({ date, initialValues, onSubmit, onCancel }: TodoFormProps) {
   const [content, setContent] = useState(initialValues?.content ?? '');
-  const [category, setCategory] = useState<Category>(initialValues?.category ?? '기타');
+  const [category, setCategory] = useState<string>(initialValues?.category ?? '기타');
   const [targetTime, setTargetTime] = useState(initialValues?.targetTime?.toString() ?? '');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,7 +43,7 @@ export function TodoForm({ date, initialValues, onSubmit, onCancel }: TodoFormPr
         <select
           className="todo-form__select"
           value={category}
-          onChange={e => setCategory(e.target.value as Category)}
+          onChange={e => setCategory(e.target.value)}
         >
           {CATEGORIES.map(cat => (
             <option key={cat} value={cat}>{cat}</option>

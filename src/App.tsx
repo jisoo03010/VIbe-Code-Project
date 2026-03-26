@@ -5,6 +5,9 @@ import type { Todo } from './features/todo';
 import { TodayPage } from './features/today/TodayPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { useCategory } from './features/settings/useCategory';
+import { usePattern } from './features/settings/usePattern';
+import { useAuth } from './features/auth/useAuth';
+import { AuthPage } from './features/auth/AuthPage';
 import { BottomNav } from './shared/components/BottomNav';
 import { BottomSheet } from './shared/components/BottomSheet';
 import { DayTodoPanel } from './features/todo/components/DayTodoPanel';
@@ -14,10 +17,30 @@ import './App.css';
 type Page = 'home' | 'today' | 'settings';
 
 export default function App() {
+  const { user, loading, signIn, signUp } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="auth-loading">
+        <span className="auth-logo__bean">🫘</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage onSignIn={signIn} onSignUp={signUp} />;
+  }
+
+  return <AppMain />;
+}
+
+function AppMain() {
+  const { signOut } = useAuth();
   const { currentDate, viewType, setViewType, calendarDays, goToPrev, goToNext, goToToday, isToday } =
     useCalendar();
   const { todos, addTodo, deleteTodo, getTodosForDate, updateTodo, getCompletionRate, getMonthlyDoneCount } = useTodo();
   const { categories, maxCategories, addCategory, updateCategory, deleteCategory } = useCategory();
+  const { patterns, addPattern, updatePattern, deletePattern } = usePattern();
 
   const taskCounts: Record<string, number> = {};
   for (const t of todos) {
@@ -140,7 +163,7 @@ export default function App() {
         </div>
 
         <div className={`page ${page === 'today' ? 'page--active' : ''}`}>
-          <TodayPage todos={todayTodos} onToggle={handleToggle} />
+          <TodayPage todos={todos} />
         </div>
 
         <div className={`page ${page === 'settings' ? 'page--active' : ''}`}>
@@ -151,6 +174,11 @@ export default function App() {
             onAddCategory={addCategory}
             onUpdateCategory={updateCategory}
             onDeleteCategory={deleteCategory}
+            patterns={patterns}
+            onAddPattern={addPattern}
+            onUpdatePattern={updatePattern}
+            onDeletePattern={deletePattern}
+            onSignOut={signOut}
           />
         </div>
       </div>

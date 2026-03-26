@@ -1,55 +1,86 @@
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { Todo } from '../types/todo.types';
+import { supabase } from '../../../shared/lib/supabase';
 
-const TODAY = new Date().toISOString().split('T')[0];
-const YESTERDAY = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+function rowToTodo(row: Record<string, unknown>): Todo {
+  return {
+    id: row.id as string,
+    content: row.content as string,
+    category: row.category as string,
+    targetTime: row.target_time as number | undefined,
+    status: row.status as 'pending' | 'done',
+    date: row.date as string,
+    createdAt: new Date(row.created_at as string),
+  };
+}
 
-const MOCK_TODOS: Todo[] = [
-  // 어제 데이터
-  { id: '1', content: '알고리즘 문제 3개 풀기', category: '공부', targetTime: 60, status: 'done', date: YESTERDAY, createdAt: new Date() },
-  { id: '2', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: YESTERDAY, createdAt: new Date() },
-  { id: '3', content: '프로젝트 API 설계', category: '업무', targetTime: 90, status: 'done', date: YESTERDAY, createdAt: new Date() },
-
-  // 오늘 데이터
-  { id: '10', content: '리액트 강의 듣기', category: '공부', targetTime: 45, status: 'done', date: TODAY, createdAt: new Date() },
-  { id: '11', content: '타입스크립트 복습', category: '공부', targetTime: 30, status: 'pending', date: TODAY, createdAt: new Date() },
-  { id: '12', content: '아침 러닝 30분', category: '운동', targetTime: 30, status: 'done', date: TODAY, createdAt: new Date() },
-  { id: '13', content: '스트레칭', category: '운동', targetTime: 15, status: 'pending', date: TODAY, createdAt: new Date() },
-  { id: '14', content: '주간 회의 참석', category: '업무', targetTime: 30, status: 'done', date: TODAY, createdAt: new Date() },
-  { id: '15', content: 'PR 코드 리뷰', category: '업무', targetTime: 60, status: 'pending', date: TODAY, createdAt: new Date() },
-  { id: '16', content: '책 읽기 - 클린 코드 3장', category: '개인', targetTime: 40, status: 'pending', date: TODAY, createdAt: new Date() },
-];
+async function getUserId() {
+  const { data } = await supabase.auth.getUser();
+  return data.user?.id;
+}
 
 export function useTodo() {
-  const [todos, setTodos] = useState<Todo[]>(MOCK_TODOS);
+  const [todos, setTodos] = useState<Todo[]>([]);
 
-  const addTodo = (todo: Omit<Todo, 'id' | 'createdAt'>) => {
-    setTodos(prev => [
-      ...prev,
-      { ...todo, id: crypto.randomUUID(), createdAt: new Date() },
-    ]);
-  };
+  useEffect(() => {
+    supabase
+      .from('todos')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) setTodos(data.map(rowToTodo));
+      });
+  }, []);
 
-  const updateTodo = (id: string, updates: Partial<Omit<Todo, 'id' | 'createdAt'>>) => {
-    setTodos(prev => prev.map(t => (t.id === id ? { ...t, ...updates } : t)));
-  };
+  const addTodo = useCallback(async (todo: Omit<Todo, 'id' | 'createdAt'>) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('todos')
+      .insert({
+        user_id: userId,
+        content: todo.content,
+        category: todo.category,
+        target_time: todo.targetTime ?? null,
+        status: todo.status,
+        date: todo.date,
+      })
+      .select()
+      .single();
+    if (!error && data) setTodos(prev => [...prev, rowToTodo(data)]);
+  }, []);
 
-  const deleteTodo = (id: string) => {
-    setTodos(prev => prev.filter(t => t.id !== id));
-  };
+  const updateTodo = useCallback(async (id: string, updates: Partial<Omit<Todo, 'id' | 'createdAt'>>) => {
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.content !== undefined) dbUpdates.content = updates.content;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.targetTime !== undefined) dbUpdates.target_time = updates.targetTime;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
 
-  const getTodosForDate = (date: string) => todos.filter(t => t.date === date);
+    const { error } = await supabase.from('todos').update(dbUpdates).eq('id', id);
+    if (!error) setTodos(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+  }, []);
 
-  const getCompletionRate = (date: string) => {
-    const dayTodos = getTodosForDate(date);
+  const deleteTodo = useCallback(async (id: string) => {
+    const { error } = await supabase.from('todos').delete().eq('id', id);
+    if (!error) setTodos(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const getTodosForDate = useCallback(
+    (date: string) => todos.filter(t => t.date === date),
+    [todos]
+  );
+
+  const getCompletionRate = useCallback((date: string) => {
+    const dayTodos = todos.filter(t => t.date === date);
     if (dayTodos.length === 0) return 0;
-    const done = dayTodos.filter(t => t.status === 'done').length;
-    return done / dayTodos.length;
-  };
+    return dayTodos.filter(t => t.status === 'done').length / dayTodos.length;
+  }, [todos]);
 
-  /** 해당 월의 누적 완료 개수 (YYYY-MM) */
-  const getMonthlyDoneCount = (yearMonth: string) =>
-    todos.filter(t => t.date.startsWith(yearMonth) && t.status === 'done').length;
+  const getMonthlyDoneCount = useCallback((yearMonth: string) =>
+    todos.filter(t => t.date.startsWith(yearMonth) && t.status === 'done').length,
+    [todos]
+  );
 
   return { todos, addTodo, updateTodo, deleteTodo, getTodosForDate, getCompletionRate, getMonthlyDoneCount };
 }

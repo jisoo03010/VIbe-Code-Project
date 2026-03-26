@@ -240,3 +240,7 @@ App.tsx
 - **로컬스토리지 연동**: 현재 메모리 상태를 영속화
 - **알림 기능**: 설정 페이지 알림 항목 구현
 - **테마**: 라이트/다크 모드 전환
+
+
+project url : https://pbvgednmqvtjywbuxlzm.supabase.co
+Anon key : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBidmdlZG5tcXZ0anl3YnV4bHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTgwNDIsImV4cCI6MjA5MDA3NDA0Mn0.mMo4MevKSVYwRLzyYl8Y8ISB0mpDLdtzQvUn6hg2oE8
