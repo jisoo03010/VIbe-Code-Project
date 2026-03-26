@@ -27,17 +27,21 @@ export function useCategory() {
       .order('created_at', { ascending: true })
       .then(async ({ data, error }) => {
         if (error) return;
-        // 첫 로그인 시 기본 카테고리 삽입
-        if (data.length === 0) {
-          const userId = await getUserId();
-          const { data: inserted } = await supabase
-            .from('categories')
-            .insert(DEFAULT_CATEGORIES.map(c => ({ ...c, user_id: userId })))
-            .select();
-          if (inserted) setCategories(inserted as CategoryItem[]);
-        } else {
+        if (data.length > 0) {
           setCategories(data as CategoryItem[]);
+          return;
         }
+        // 첫 로그인 시 기본 카테고리 삽입 (중복 방지: count 재확인)
+        const { count } = await supabase
+          .from('categories')
+          .select('*', { count: 'exact', head: true });
+        if ((count ?? 0) > 0) return;
+        const userId = await getUserId();
+        const { data: inserted } = await supabase
+          .from('categories')
+          .insert(DEFAULT_CATEGORIES.map(c => ({ ...c, user_id: userId })))
+          .select();
+        if (inserted) setCategories(inserted as CategoryItem[]);
       });
   }, []);
 
